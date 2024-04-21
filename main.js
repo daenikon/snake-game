@@ -89,6 +89,11 @@ const Snake = {
     // Update Head
     let head = this.body[0]
     let newHead = [head[0] + this.direction[0] * SW, head[1] + this.direction[1] * SW];
+
+    if (newHead[0] >= C.width) newHead[0] = 0;
+    else if (newHead[0] < 0) newHead[0] = C.width - SW;
+    if (newHead[1] >= C.width - SW) newHead[1] = 0;
+    else if (newHead[1] < 0) newHead[1] = C.width - SW;
     
     // Update Body
     this.body.unshift(newHead);
