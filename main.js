@@ -21,13 +21,16 @@ const COMMANDS = {
 const CTX = C.getContext("2d");
 const GRID = 32;
 const SW = C.width / 32; // square width
-const TICK = 200; // miliseconds
+const TICK = 100; // miliseconds
 
 const Game = {
   gameOver: false,
   score: 0,
   userCommands: [], // updated every tick
   updateSnakeDirection: function() {
+  },
+  isOnSnake: function(position) {
+    return Snake.body.some(segment => segment[0] === position[0] && segment[1] === position[1]);
   },
   start: function() {
     Snake.render();
@@ -36,12 +39,12 @@ const Game = {
     const intervalId = setInterval(function() {
       Snake.updateDirection();
       Snake.move();
+      Snake.ateApple();
     }, TICK)
   }
 }
 
 const Apple = {
-  isSpawned: false,
   position: [],
   getRandomPosition: function() {
     const x = Math.floor(Math.random() * GRID) * SW;
@@ -49,10 +52,15 @@ const Apple = {
     return [x, y];
   },
   spawn: function() {
-    this.pos = this.getRandomPosition();
+    this.position = this.getRandomPosition();
+
+    while(Game.isOnSnake(this.position)) {
+      this.position = this.getRandomPosition();
+      console.log("Spawned in snake");
+    }
     
     CTX.fillStyle = "red";
-    CTX.fillRect(this.pos[0], this.pos[1], SW, SW);
+    CTX.fillRect(this.position[0], this.position[1], SW, SW);
   }
 }
 
@@ -66,19 +74,15 @@ const Snake = {
       CTX.fillRect(segment[0], segment[1], SW, SW);
     })
   },
-  updateDirection: function() {
+  updateDirection: function() { // this is called "Input Buffering"
     const direction = Game.userCommands.pop();
-
-    if (direction == undefined) {
-      return
-    }
-
-    Game.userCommands = []; // update Game.userCommands
-
-    if (direction[0] == this.direction[0] * -1 && direction[1] == this.direction[1] * -1) {
-      return
-    }
-
+    // return if no command was given
+    if (direction == undefined) return;
+    // update Game.userCommands
+    Game.userCommands = [];
+    // return if opposite direction
+    if (direction[0] == this.direction[0] * -1 && direction[1] == this.direction[1] * -1) return;
+    // update direction
     this.direction = direction;
   },
   move: function() {
@@ -93,6 +97,12 @@ const Snake = {
     CTX.clearRect(tail[0], tail[1], SW, SW);
 
     this.render()
+  },
+  ateApple: function() {
+    if (Game.isOnSnake(Apple.position)) {
+      console.log("APPLE!");
+      Apple.spawn();
+    }
   }
 }
 
