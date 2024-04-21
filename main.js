@@ -21,18 +21,22 @@ const COMMANDS = {
 const CTX = C.getContext("2d");
 const GRID = 32;
 const SW = C.width / 32; // square width
+const TICK = 200; // miliseconds
 
 const Game = {
   gameOver: false,
   score: 0,
   userCommands: [], // updated every tick
+  updateSnakeDirection: function() {
+  },
   start: function() {
     Snake.render();
     Apple.spawn();
 
     const intervalId = setInterval(function() {
+      Snake.updateDirection();
       Snake.move();
-    }, 350)
+    }, TICK)
   }
 }
 
@@ -62,6 +66,21 @@ const Snake = {
       CTX.fillRect(segment[0], segment[1], SW, SW);
     })
   },
+  updateDirection: function() {
+    const direction = Game.userCommands.pop();
+
+    if (direction == undefined) {
+      return
+    }
+
+    Game.userCommands = []; // update Game.userCommands
+
+    if (direction[0] == this.direction[0] * -1 && direction[1] == this.direction[1] * -1) {
+      return
+    }
+
+    this.direction = direction;
+  },
   move: function() {
     // Update Head
     let head = this.body[0]
@@ -79,7 +98,7 @@ const Snake = {
 
 document.addEventListener('keydown', function(e) {
   if (e.key in COMMANDS) {
-    Snake.direction = COMMANDS[e.key];
+    Game.userCommands.push(COMMANDS[e.key]);
   }
 })
 
