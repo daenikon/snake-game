@@ -100,10 +100,16 @@ const Snake = {
   },
   ateApple: function() {
     if (Game.isOnSnake(Apple.position)) {
-      console.log("APPLE!");
+      Game.score += 100;
+      console.log(Game.score);
       Apple.spawn();
+      this.grow();
     }
-  }
+  },
+  grow: function() {
+    const tail = this.body[this.body.length - 1];
+    this.body.push(tail);
+  },
 }
 
 document.addEventListener('keydown', function(e) {
