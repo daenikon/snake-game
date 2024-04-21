@@ -7,6 +7,17 @@ C.style.border = "1px solid black";
 
 document.body.appendChild(C);
 
+const COMMANDS = {
+  "ArrowUp": [0, -1],
+  "ArrowRight": [1, 0],
+  "ArrowDown": [0, 1],
+  "ArrowLeft": [-1, 0],
+  "w": [0, -1],
+  "d": [1, 0],
+  "s": [0, 1],
+  "a": [-1, 0],
+}
+
 const CTX = C.getContext("2d");
 const GRID = 32;
 const SW = C.width / 32; // square width
@@ -14,6 +25,15 @@ const SW = C.width / 32; // square width
 const Game = {
   gameOver: false,
   score: 0,
+  userCommands: [], // updated every tick
+  start: function() {
+    Snake.render();
+    Apple.spawn();
+
+    const intervalId = setInterval(function() {
+      Snake.move();
+    }, 350)
+  }
 }
 
 const Apple = {
@@ -50,7 +70,6 @@ const Snake = {
     // Update Body
     this.body.unshift(newHead);
     // Clean tail
-    console.log(this.body)
     const tail = this.body.pop();
     CTX.clearRect(tail[0], tail[1], SW, SW);
 
@@ -59,10 +78,9 @@ const Snake = {
 }
 
 document.addEventListener('keydown', function(e) {
-  if (e.key = " ") {
-    Snake.move()
+  if (e.key in COMMANDS) {
+    Snake.direction = COMMANDS[e.key];
   }
 })
 
-Snake.render()
-Apple.spawn()
+Game.start()
