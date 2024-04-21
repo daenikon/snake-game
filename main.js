@@ -21,7 +21,7 @@ const COMMANDS = {
 const CTX = C.getContext("2d");
 const GRID = 32;
 const SW = C.width / 32; // square width
-const TICK = 100; // miliseconds
+const TICK = 50; // miliseconds
 
 const Game = {
   gameOver: false,
@@ -92,16 +92,18 @@ const Snake = {
 
     if (newHead[0] >= C.width) newHead[0] = 0;
     else if (newHead[0] < 0) newHead[0] = C.width - SW;
-    if (newHead[1] >= C.width - SW) newHead[1] = 0;
+    if (newHead[1] >= C.width) newHead[1] = 0;
     else if (newHead[1] < 0) newHead[1] = C.width - SW;
     
     // Update Body
     this.body.unshift(newHead);
+
     // Clean tail
     const tail = this.body.pop();
     CTX.clearRect(tail[0], tail[1], SW, SW);
-
-    this.render()
+    // Update head
+    CTX.fillStyle = "blue";
+    CTX.fillRect(this.body[0][0], this.body[0][1], SW, SW);
   },
   ateApple: function() {
     if (Game.isOnSnake(Apple.position)) {
