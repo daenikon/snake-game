@@ -1,5 +1,3 @@
-console.log("test");
-
 const C = document.createElement("canvas");
 C.width = 512;
 C.height = C.width;
@@ -19,19 +17,15 @@ const COMMANDS = {
 }
 
 const CTX = C.getContext("2d");
-const GRID = 32;
-const SW = C.width / 32; // square width
-const TICK = 50; // miliseconds
+const GRID = 16;
+const SW = Math.floor(C.width / GRID); // square width
 
 const Game = {
   gameOver: false,
   score: 0,
+  tick: 100,
   userCommands: [], // updated every tick
-  updateSnakeDirection: function() {
-  },
-  isOnSnake: function(position) {
-    return Snake.body.some(segment => segment[0] === position[0] && segment[1] === position[1]);
-  },
+
   start: function() {
     Snake.render();
     Apple.spawn();
@@ -40,23 +34,36 @@ const Game = {
       Snake.updateDirection();
       Snake.move();
       Snake.ateApple();
-    }, TICK)
-  }
+      if(Snake.ateItself()) {
+        clearInterval(intervalId);
+      };
+    }, this.tick)
+  },
+
+  isOnSnake: function(position) {
+    return Snake.body.some(segment => segment[0] === position[0] && segment[1] === position[1]);
+  },
+
+  updateScore: function(points) {
+    this.score += points;
+    document.getElementById("score").textContent = this.score;
+  },
 }
 
 const Apple = {
   position: [],
+
   getRandomPosition: function() {
     const x = Math.floor(Math.random() * GRID) * SW;
     const y = Math.floor(Math.random() * GRID) * SW;
     return [x, y];
   },
+  
   spawn: function() {
     this.position = this.getRandomPosition();
-
     while(Game.isOnSnake(this.position)) {
       this.position = this.getRandomPosition();
-      console.log("Spawned in snake");
+      console.log("Spawned inside snake");
     }
     
     CTX.fillStyle = "red";
@@ -65,57 +72,65 @@ const Apple = {
 }
 
 const Snake = {
-  body: [ [SW * 5, SW * 5], [SW * 5, SW * 4], [SW * 5, SW * 3] ], // head is the first element
-  direction: [0, 1],
+  color: "blue",
   isDead: false,
+
+  body: [ [SW * 5, SW * 5], [SW * 5, SW * 4] ], // head is the first element
+  direction: [0, 1],
+
   render: function() {
     CTX.fillStyle = "blue";
     this.body.forEach(segment => {
       CTX.fillRect(segment[0], segment[1], SW, SW);
     })
   },
+
   updateDirection: function() { // this is called "Input Buffering"
     const direction = Game.userCommands.pop();
-    // return if no command was given
     if (direction == undefined) return;
-    // update Game.userCommands
     Game.userCommands = [];
-    // return if opposite direction
     if (direction[0] == this.direction[0] * -1 && direction[1] == this.direction[1] * -1) return;
-    // update direction
     this.direction = direction;
   },
+  
   move: function() {
-    // Update Head
     let head = this.body[0]
     let newHead = [head[0] + this.direction[0] * SW, head[1] + this.direction[1] * SW];
-
     if (newHead[0] >= C.width) newHead[0] = 0;
     else if (newHead[0] < 0) newHead[0] = C.width - SW;
     if (newHead[1] >= C.width) newHead[1] = 0;
     else if (newHead[1] < 0) newHead[1] = C.width - SW;
-    
-    // Update Body
     this.body.unshift(newHead);
-
-    // Clean tail
     const tail = this.body.pop();
     CTX.clearRect(tail[0], tail[1], SW, SW);
-    // Update head
-    CTX.fillStyle = "blue";
+    CTX.fillStyle = this.color;
     CTX.fillRect(this.body[0][0], this.body[0][1], SW, SW);
   },
+
   ateApple: function() {
     if (Game.isOnSnake(Apple.position)) {
-      Game.score += 100;
-      console.log(Game.score);
+      Game.updateScore(100);
       Apple.spawn();
       this.grow();
     }
   },
+
   grow: function() {
     const tail = this.body[this.body.length - 1];
     this.body.push(tail);
+  },
+
+  ateItself: function() {
+    const head = this.body[0];
+    for (let i = 1; i < this.body.length; i++) {
+      if (head[0] === this.body[i][0] && head[1] === this.body[i][1]) {
+        console.log("dead :(");
+        Game.gameOver = true;
+        Snake.isDead = true;
+        return true;
+      }
+    }
+    return false;
   },
 }
 
