@@ -1,0 +1,16 @@
+#stage {
+    position: relative;
+}
+
+canvas {
+    position: absolute;
+}
+
+#gameLayer {
+    z-index: 2;
+}
+
+#backgroundLayer {
+    z-index: 1;
+    background-color: gray;
+}
